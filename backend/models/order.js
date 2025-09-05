@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema({
 
 // Middleware to update updatedAt on save
 orderSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = Date.now() + (5.5 * 60 * 60 * 1000);
   next();
 });
 
