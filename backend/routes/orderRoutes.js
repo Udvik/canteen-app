@@ -6,5 +6,6 @@ router.post('/', orderController.createOrder);
 router.get('/:billNumber', orderController.getOrderByBillNumber);
 router.put('/:billNumber/prepare', orderController.markPreparing);
 router.put('/:billNumber/serve', orderController.markServed);
+router.put('/:billNumber/pending', orderController.markPending);
 
 module.exports = router;
