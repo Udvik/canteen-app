@@ -7,13 +7,13 @@ exports.createOrder = async (req, res) => {
     const { items, paymentStatus } = req.body;
 
     // Generate unique bill number (you can customize format)
-    const billNumber = uuidv4().split('-')[0]; // short unique string
+    const billNumber = Math.floor(1000 + Math.random() * 9000).toString(); 
 
     const newOrder = new Order({
       billNumber,
       items,
       paymentStatus,
-      orderStatus: paymentStatus ? 'pending' : 'pending',
+      orderStatus: 'pending',
     });
 
     const savedOrder = await newOrder.save();
@@ -52,14 +52,15 @@ exports.getOrderByBillNumber = async (req, res) => {
 exports.markPreparing = async (req, res) => {
   try {
     const { billNumber } = req.params;
+
     const order = await Order.findOneAndUpdate(
-      { billNumber },
-      { orderStatus: 'preparing' },
-      { new: true }
+      { billNumber, orderStatus: 'pending' },         
+      { orderStatus: 'preparing' },                   
+      { new: true }  
     );
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(400).json({ message: 'Order not found or already being prepared/served.' });
     }
 
     res.json(order);
@@ -68,18 +69,19 @@ exports.markPreparing = async (req, res) => {
   }
 };
 
+
 // Mark order as served
 exports.markServed = async (req, res) => {
   try {
     const { billNumber } = req.params;
     const order = await Order.findOneAndUpdate(
-      { billNumber },
+      { billNumber , orderStatus: 'preparing' },
       { orderStatus: 'served' },
       { new: true }
     );
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: 'Order not found or didnt start preparing' });
     }
 
     res.json(order);
