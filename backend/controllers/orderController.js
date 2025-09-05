@@ -55,12 +55,12 @@ exports.markPreparing = async (req, res) => {
 
     const order = await Order.findOneAndUpdate(
       { billNumber, orderStatus: 'pending' },         
-      { orderStatus: 'preparing' },                   
+      { orderStatus: 'preparing' , updatedAt: Date.now() + (5.5 * 60 * 60 * 1000)},                   
       { new: true }  
     );
 
     if (!order) {
-      return res.status(400).json({ message: 'Order not found or already being prepared/served.' });
+      return res.status(400).json({ message: 'order not found or already getting prepared' });
     }
 
     res.json(order);
@@ -76,16 +76,32 @@ exports.markServed = async (req, res) => {
     const { billNumber } = req.params;
     const order = await Order.findOneAndUpdate(
       { billNumber , orderStatus: 'preparing' },
-      { orderStatus: 'served' },
+      { orderStatus: 'served' , updatedAt: Date.now() + (5.5 * 60 * 60 * 1000) },
       { new: true }
     );
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found or didnt start preparing' });
+      return res.status(404).json({ message: 'didnt start preparing or already served' });
     }
 
     res.json(order);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.markPending = async (req, res) => {
+  try {
+    const { billNumber } = req.params;
+
+    const order = await Order.findOneAndUpdate(
+      { billNumber}, // Only update if status is preparing or served
+      { orderStatus: 'pending', updatedAt: Date.now() + (5.5 * 60 * 60 * 1000) }, // Set status to pending
+      { new: true } // Return the updated document
+    );
+
+    res.json(order);
+  }catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
